@@ -138,9 +138,22 @@ is($r2->freshness_lifetime, 3600);
 is($r2->freshness_lifetime(h_default => 900), 900);
 is($r2->freshness_lifetime(h_min => 7200), 7200);
 is($r2->freshness_lifetime(time => time), 3600);
+my $t0 = time;
 $r2->last_modified(time - 900);
-is($r2->freshness_lifetime, 90);
-is($r2->freshness_lifetime(h_lastmod_fraction => 0.2), 180);
+$freshness_lifetime = $r2->freshness_lifetime;
+my $t1 = time;
+if ($freshness_lifetime == 90) {
+    is($freshness_lifetime, 90);
+} elsif ($t1 != $t0) {
+    cmp_ok($freshness_lifetime, "<=", ($t1-$t0+900)*0.1);
+}
+$freshness_lifetime = $r2->freshness_lifetime(h_lastmod_fraction => 0.2);
+my $t2 = time;
+if ($freshness_lifetime == 180) {
+    is($freshness_lifetime, 180);
+} elsif ($t2 != $t0) {
+    cmp_ok($freshness_lifetime, "<=", ($t2-$t0+900)*0.2);
+}
 is($r2->freshness_lifetime(h_min => 300), 300);
 $r2->last_modified(time - 1000000);
 is($r2->freshness_lifetime(h_max => 7200), 7200);
