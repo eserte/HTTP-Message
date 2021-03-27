@@ -7,6 +7,9 @@ use warnings;
 use Test::More;
 plan tests => 68;
 
+use lib 't/lib';
+use FakeTime 'time'; # must come before the other HTTP::* uses
+
 use HTTP::Date;
 use HTTP::Request;
 use HTTP::Response;
@@ -126,6 +129,7 @@ is($r->base, "http://www.sn.no/2/;a=/foo/bar");
 	is($#warn, 0);
 	like($warn[0], qr/Undefined argument to parse\(\)/);
 }
+FakeTime::freeze();
 is($r2->code, undef);
 is($r2->message, undef);
 is($r2->protocol, undef);
@@ -148,6 +152,7 @@ is($r2->freshness_lifetime(heuristic_expiry => 0), undef);
 is($r2->freshness_lifetime(heuristic_expiry => 1), 86400);
 ok($r2->is_fresh(time => time));
 ok($r2->fresh_until(time => time + 10));
+FakeTime::unfreeze();
 
 $r2->client_date(1);
 cmp_ok(abs(time - $r2->current_age), '<', 10); # Allow 10s for slow boxes
